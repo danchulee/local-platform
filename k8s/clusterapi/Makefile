@@ -1,8 +1,8 @@
 # # # Enable the experimental Cluster topology feature.
-# export CLUSTER_TOPOLOGY=true
+export CLUSTER_TOPOLOGY=true
 
 # # # Enable the experimental Machine Pool feature
-# export EXP_MACHINE_POOL=true
+export EXP_MACHINE_POOL=true
 
 # The list of service CIDR, default ["10.128.0.0/12"]
 export SERVICE_CIDR=["10.96.0.0/12"]
@@ -20,6 +20,8 @@ cluster-init:
 	clusterctl init --infrastructure docker
 
 workload-cluster-init:
+	export SERVICE_CIDR=["10.96.0.0/12"]
+	export POD_CIDR=["192.168.0.0/16"]
 	clusterctl generate cluster room02 --flavor development \
 		--kubernetes-version v1.29.0 \
 		--control-plane-machine-count=3 \
@@ -34,3 +36,10 @@ workload-cluster-kubeconfig:
 	sed -i -e "s/server:.*/server: https:\/\/$(docker port capi-quickstart-lb 6443/tcp | sed "s/0.0.0.0/127.0.0.1/")/g" ./room02.kubeconfig
 	sed -i -e "s/certificate-authority-data:.*/insecure-skip-tls-verify: true/g" ./room02.kubeconfig
 
+workload-cluster-cni:
+	cilium install --version 1.15.1
+
+clean-up:
+	kubectx kind-room
+	kubectl delete cluster room02
+	kind delete cluster --name=room
