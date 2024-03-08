@@ -30,4 +30,7 @@ workload-cluster-init:
 	kubectl describe cluster room02
 
 workload-cluster-kubeconfig:
-	kind get kubeconfig --name room02 > room02.kubeconfig
+	clusterctl get kubeconfig room02 > room02.kubeconfig
+	sed -i -e "s/server:.*/server: https:\/\/$(docker port capi-quickstart-lb 6443/tcp | sed "s/0.0.0.0/127.0.0.1/")/g" ./room02.kubeconfig
+	sed -i -e "s/certificate-authority-data:.*/insecure-skip-tls-verify: true/g" ./room02.kubeconfig
+
